@@ -36,7 +36,7 @@ function woocommerce_get_refreshed_fragments() {
 				'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>'
 			)
 		),
-		'cart_hash' => md5( json_encode( $woocommerce->cart->get_cart() ) )
+		'cart_hash' => $woocommerce->cart->get_cart() ? md5( json_encode( $woocommerce->cart->get_cart() ) ) : ''
 	);
 
 	echo json_encode( $data );
@@ -81,16 +81,20 @@ add_action('wp_ajax_nopriv_woocommerce_apply_coupon', 'woocommerce_ajax_apply_co
  * @return void
  */
 function woocommerce_ajax_update_shipping_method() {
-	global $woocommerce;
 
 	check_ajax_referer( 'update-shipping-method', 'security' );
 
 	if ( ! defined('WOOCOMMERCE_CART') ) define( 'WOOCOMMERCE_CART', true );
 
-	if ( isset( $_POST['shipping_method'] ) )
-		$woocommerce->session->chosen_shipping_method = $_POST['shipping_method'];
+	$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 
-	$woocommerce->cart->calculate_totals();
+	if ( isset( $_POST['shipping_method'] ) && is_array( $_POST['shipping_method'] ) )
+		foreach ( $_POST['shipping_method'] as $i => $value )
+			$chosen_shipping_methods[ $i ] = woocommerce_clean( $value );
+
+	WC()->session->set( 'chosen_shipping_methods', $chosen_shipping_methods );
+
+	WC()->cart->calculate_totals();
 
 	woocommerce_cart_totals();
 
@@ -108,60 +112,65 @@ add_action('wp_ajax_nopriv_woocommerce_update_shipping_method', 'woocommerce_aja
  * @return void
  */
 function woocommerce_ajax_update_order_review() {
-	global $woocommerce;
 
 	check_ajax_referer( 'update-order-review', 'security' );
 
 	if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) )
 		define( 'WOOCOMMERCE_CHECKOUT', true );
 
-	if ( sizeof( $woocommerce->cart->get_cart() ) == 0 ) {
+	if ( sizeof( WC()->cart->get_cart() ) == 0 ) {
 		echo '<div class="woocommerce-error">' . __( 'Sorry, your session has expired.', 'woocommerce' ) . ' <a href="' . home_url() . '">' . __( 'Return to homepage &rarr;', 'woocommerce' ) . '</a></div>';
 		die();
 	}
 
 	do_action( 'woocommerce_checkout_update_order_review', $_POST['post_data'] );
 
-	$woocommerce->session->chosen_shipping_method = empty( $_POST['shipping_method'] ) ? '' : $_POST['shipping_method'];
-	$woocommerce->session->chosen_payment_method  = empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'];
+	$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+
+	if ( isset( $_POST['shipping_method'] ) && is_array( $_POST['shipping_method'] ) )
+		foreach ( $_POST['shipping_method'] as $i => $value )
+			$chosen_shipping_methods[ $i ] = woocommerce_clean( $value );
+
+	WC()->session->set( 'chosen_shipping_methods', $chosen_shipping_methods );
+	WC()->session->set( 'chosen_payment_method', empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'] );
 
 	if ( isset( $_POST['country'] ) )
-		$woocommerce->customer->set_country( $_POST['country'] );
+		WC()->customer->set_country( $_POST['country'] );
 
 	if ( isset( $_POST['state'] ) )
-		$woocommerce->customer->set_state( $_POST['state'] );
+		WC()->customer->set_state( $_POST['state'] );
 
 	if ( isset( $_POST['postcode'] ) )
-		$woocommerce->customer->set_postcode( $_POST['postcode'] );
+		WC()->customer->set_postcode( $_POST['postcode'] );
 
 	if ( isset( $_POST['city'] ) )
-		$woocommerce->customer->set_city( $_POST['city'] );
+		WC()->customer->set_city( $_POST['city'] );
 
 	if ( isset( $_POST['address'] ) )
-		$woocommerce->customer->set_address( $_POST['address'] );
+		WC()->customer->set_address( $_POST['address'] );
 
 	if ( isset( $_POST['address_2'] ) )
-		$woocommerce->customer->set_address_2( $_POST['address_2'] );
+		WC()->customer->set_address_2( $_POST['address_2'] );
 
 	if ( isset( $_POST['s_country'] ) )
-		$woocommerce->customer->set_shipping_country( $_POST['s_country'] );
+		WC()->customer->set_shipping_country( $_POST['s_country'] );
 
 	if ( isset( $_POST['s_state'] ) )
-		$woocommerce->customer->set_shipping_state( $_POST['s_state'] );
+		WC()->customer->set_shipping_state( $_POST['s_state'] );
 
 	if ( isset( $_POST['s_postcode'] ) )
-		$woocommerce->customer->set_shipping_postcode( $_POST['s_postcode'] );
+		WC()->customer->set_shipping_postcode( $_POST['s_postcode'] );
 
 	if ( isset( $_POST['s_city'] ) )
-		$woocommerce->customer->set_shipping_city( $_POST['s_city'] );
+		WC()->customer->set_shipping_city( $_POST['s_city'] );
 
 	if ( isset( $_POST['s_address'] ) )
-		$woocommerce->customer->set_shipping_address( $_POST['s_address'] );
+		WC()->customer->set_shipping_address( $_POST['s_address'] );
 
 	if ( isset( $_POST['s_address_2'] ) )
-		$woocommerce->customer->set_shipping_address_2( $_POST['s_address_2'] );
+		WC()->customer->set_shipping_address_2( $_POST['s_address_2'] );
 
-	$woocommerce->cart->calculate_totals();
+	WC()->cart->calculate_totals();
 
 	do_action( 'woocommerce_checkout_order_review' ); // Display review order table
 
@@ -578,7 +587,7 @@ function woocommerce_add_variation() {
 		$image_id = 0;
 		$variation = get_post( $variation_id ); // Get the variation object
 
-		include( 'admin/post-types/writepanels/variation-admin-html.php' );
+		include( 'includes/admin/post-types/meta-boxes/views/html-variation-admin.php' );
 	}
 
 	die();
@@ -741,7 +750,7 @@ function woocommerce_link_all_variations() {
 			break;
 	}
 
-	$woocommerce->get_helper( 'transient' )->clear_product_transients( $post_id );
+	wc_delete_product_transients( $post_id );
 
 	echo $added;
 
@@ -787,87 +796,31 @@ function woocommerce_grant_access_to_download() {
 
 	global $wpdb;
 
+	$wpdb->hide_errors();
+
 	$order_id 	= intval( $_POST['order_id'] );
 	$product_id = intval( $_POST['product_id'] );
 	$loop 		= intval( $_POST['loop'] );
 	$file_count = 0;
-
 	$order 		= new WC_Order( $order_id );
 	$product 	= get_product( $product_id );
 
-	$user_email = sanitize_email( $order->billing_email );
-
-	if ( ! $user_email )
+	if ( ! $order->billing_email )
 		die();
 
-	$limit		= trim( get_post_meta( $product_id, '_download_limit', true ) );
-	$expiry 	= trim( get_post_meta( $product_id, '_download_expiry', true ) );
 	$file_paths = apply_filters( 'woocommerce_file_download_paths', get_post_meta( $product_id, '_file_paths', true ), $product_id, $order_id, null );
 
-    $limit 		= empty( $limit ) ? '' : (int) $limit;
-
-    // Default value is NULL in the table schema
-	$expiry 	= empty( $expiry ) ? null : (int) $expiry;
-
-	if ( $expiry )
-		$expiry = date_i18n( "Y-m-d", strtotime( 'NOW + ' . $expiry . ' DAY' ) );
-
-	$wpdb->hide_errors();
-
-	$response = array();
 	if ( $file_paths ) {
 		foreach ( $file_paths as $download_id => $file_path ) {
+			if ( $inserted_id = woocommerce_downloadable_file_permission( $download_id, $product_id, $order ) ) {
 
-		    $data = array(
-		    	'download_id'			=> $download_id,
-		        'product_id' 			=> $product_id,
-		        'user_id' 				=> (int) $order->user_id,
-		        'user_email' 			=> $user_email,
-		        'order_id' 				=> $order->id,
-		        'order_key' 			=> $order->order_key,
-		        'downloads_remaining' 	=> $limit,
-		        'access_granted'		=> current_time( 'mysql' ),
-		        'download_count'		=> 0
-		    );
+				// insert complete - get inserted data
+				$download = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions WHERE permission_id = %d", $inserted_id ) );
 
-		    $format = array(
-		    	'%s',
-		        '%s',
-		        '%s',
-		        '%s',
-		        '%s',
-		        '%s',
-		        '%s',
-		        '%s',
-		        '%d'
-		    );
+				$loop ++;
+				$file_count ++;
 
-		    if ( ! is_null( $expiry ) ) {
-		        $data['access_expires'] = $expiry;
-		        $format[] = '%s';
-		    }
-
-		    // Downloadable product - give access to the customer
-		    $success = $wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions',
-		        $data,
-		        $format
-		    );
-
-			if ( $success ) {
-
-				$download = new stdClass();
-				$download->product_id 	= $product_id;
-				$download->download_id 	= $download_id;
-				$download->order_id 	= $order->id;
-				$download->order_key	= $order->order_key;
-				$download->download_count 		= 0;
-				$download->downloads_remaining 	= $limit;
-				$download->access_expires 		= $expiry;
-
-				$loop++;
-				$file_count++;
-
-				include( 'admin/post-types/writepanels/order-download-permission-html.php' );
+				include( 'includes/admin/post-types/meta-boxes/views/html-order-download-permission.php' );
 			}
 		}
 	}
@@ -981,7 +934,9 @@ function woocommerce_ajax_add_order_item() {
 
 	do_action( 'woocommerce_ajax_add_order_item_meta', $item_id, $item );
 
-	include( 'admin/post-types/writepanels/order-item-html.php' );
+	$item = apply_filters( 'woocommerce_ajax_order_item', $item, $item_id );
+
+	include( 'includes/admin/post-types/meta-boxes/views/html-order-item.php' );
 
 	// Quit out
 	die();
@@ -1017,7 +972,7 @@ function woocommerce_ajax_add_order_fee() {
 	 	woocommerce_add_order_item_meta( $item_id, '_line_tax', '' );
  	}
 
-	include( 'admin/post-types/writepanels/order-fee-html.php' );
+	include( 'includes/admin/post-types/meta-boxes/views/html-order-fee.php' );
 
 	// Quit out
 	die();
@@ -1362,7 +1317,7 @@ function woocommerce_calc_line_taxes() {
 		 	woocommerce_add_order_item_meta( $item_id, 'shipping_tax_amount', $item['shipping_tax_amount'] );
 	 	}
 
-		include( 'admin/post-types/writepanels/order-tax-html.php' );
+		include( 'includes/admin/post-types/meta-boxes/views/html-order-tax.php' );
 	}
 
 	$tax_row_html = ob_get_clean();
@@ -1380,80 +1335,6 @@ function woocommerce_calc_line_taxes() {
 }
 
 add_action('wp_ajax_woocommerce_calc_line_taxes', 'woocommerce_calc_line_taxes');
-
-/**
- * woocommerce_add_line_tax function.
- *
- * @access public
- * @return void
- */
-function woocommerce_add_line_tax() {
-	global $woocommerce, $wpdb;
-
-	check_ajax_referer( 'calc-totals', 'security' );
-
-	$order_id 	= absint( $_POST['order_id'] );
-	$order 		= new WC_Order( $order_id );
-
- 	// Get tax rates
-	$rates = $wpdb->get_results( "SELECT tax_rate_id, tax_rate_country, tax_rate_state, tax_rate_name, tax_rate_priority FROM {$wpdb->prefix}woocommerce_tax_rates ORDER BY tax_rate_name" );
-
-	$tax_codes = array();
-
-	foreach( $rates as $rate ) {
-		$code = array();
-
-		$code[] = $rate->tax_rate_country;
-		$code[] = $rate->tax_rate_state;
-		$code[] = $rate->tax_rate_name ? sanitize_title( $rate->tax_rate_name ) : 'TAX';
-		$code[] = absint( $rate->tax_rate_priority );
-
-		$tax_codes[ $rate->tax_rate_id ] = strtoupper( implode( '-', array_filter( $code ) ) );
-	}
-
-	// Add line item
-   	$item_id = woocommerce_add_order_item( $order_id, array(
- 		'order_item_name' 		=> '',
- 		'order_item_type' 		=> 'tax'
- 	) );
-
- 	// Add line item meta
- 	if ( $item_id ) {
- 		woocommerce_add_order_item_meta( $item_id, 'rate_id', '' );
- 		woocommerce_add_order_item_meta( $item_id, 'label', '' );
-	 	woocommerce_add_order_item_meta( $item_id, 'compound', '' );
-	 	woocommerce_add_order_item_meta( $item_id, 'tax_amount', '' );
-	 	woocommerce_add_order_item_meta( $item_id, 'shipping_tax_amount', '' );
- 	}
-
-	include( 'admin/post-types/writepanels/order-tax-html.php' );
-
-	// Quit out
-	die();
-}
-
-add_action('wp_ajax_woocommerce_add_line_tax', 'woocommerce_add_line_tax');
-
-/**
- * woocommerce_add_line_tax function.
- *
- * @access public
- * @return void
- */
-function woocommerce_remove_line_tax() {
-	global $woocommerce;
-
-	check_ajax_referer( 'calc-totals', 'security' );
-
-	$tax_row_id = absint( $_POST['tax_row_id'] );
-
-	woocommerce_delete_order_item( $tax_row_id );
-
-	// Quit out
-	die();
-}
-
-add_action('wp_ajax_woocommerce_remove_line_tax', 'woocommerce_remove_line_tax');
 
 /**
  * Add order note via ajax
@@ -1652,12 +1533,16 @@ function woocommerce_json_search_customers() {
 
 	$found_customers = array( '' => $default );
 
+	add_action( 'pre_user_query', 'woocommerce_json_search_customer_name' );
+
 	$customers_query = new WP_User_Query( array(
 		'fields'			=> 'all',
 		'orderby'			=> 'display_name',
 		'search'			=> '*' . $term . '*',
 		'search_columns'	=> array( 'ID', 'user_login', 'user_email', 'user_nicename' )
 	) );
+
+	remove_action( 'pre_user_query', 'woocommerce_json_search_customer_name' );
 
 	$customers = $customers_query->get_results();
 
@@ -1673,6 +1558,22 @@ function woocommerce_json_search_customers() {
 
 add_action('wp_ajax_woocommerce_json_search_customers', 'woocommerce_json_search_customers');
 
+/**
+ * When searching using the WP_User_Query, search names (user meta) too
+ * @param  object $query
+ * @return object
+ */
+function woocommerce_json_search_customer_name( $query ) {
+	global $wpdb;
+
+	$term = urldecode( stripslashes( strip_tags( $_GET['term'] ) ) );
+
+	$query->query_from  .= " LEFT JOIN {$wpdb->usermeta} as meta2 ON ({$wpdb->users}.ID = meta2.user_id) ";
+	$query->query_from  .= " LEFT JOIN {$wpdb->usermeta} as meta3 ON ({$wpdb->users}.ID = meta3.user_id) ";
+
+	$query->query_where .= $wpdb->prepare( " OR ( meta2.meta_value LIKE %s OR meta3.meta_value LIKE %s )", '%' . like_escape( $term ) . '%', '%' . like_escape( $term ) . '%' );
+	$query->query_where .= " AND meta2.meta_key = 'first_name' AND meta3.meta_key = 'last_name' ";
+}
 
 /**
  * Ajax request handling for categories ordering

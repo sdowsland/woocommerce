@@ -15,141 +15,6 @@ class WC_Order {
 	/** @public int Order (post) ID */
 	public $id;
 
-	/** @public string Order status. */
-	public $status;
-
-	/** @public string Order date (placed). */
-	public $order_date;
-
-	/** @public string Order date (paid). */
-	public $modified_date;
-
-	/** @public string Note added by the customer. */
-	public $customer_note;
-
-	/** @public array Order (post) meta/custom fields. */
-	public $order_custom_fields;
-
-	/** @public string Order unique key. */
-	public $order_key;
-
-	/** @public string */
-	public $billing_first_name;
-
-	/** @public string */
-	public $billing_last_name;
-
-	/** @public string */
-	public $billing_company;
-
-	/** @public string */
-	public $billing_address_1;
-
-	/** @public string */
-	public $billing_address_2;
-
-	/** @public string */
-	public $billing_city;
-
-	/** @public string */
-	public $billing_postcode;
-
-	/** @public string */
-	public $billing_country;
-
-	/** @public string */
-	public $billing_state;
-
-	/** @public string */
-	public $billing_email;
-
-	/** @public string */
-	public $billing_phone;
-
-	/** @public string */
-	public $shipping_first_name;
-
-	/** @public string */
-	public $shipping_last_name;
-
-	/** @public string */
-	public $shipping_company;
-
-	/** @public string */
-	public $shipping_address_1;
-
-	/** @public string */
-	public $shipping_address_2;
-
-	/** @public string */
-	public $shipping_city;
-
-	/** @public string */
-	public $shipping_postcode;
-
-	/** @public string */
-	public $shipping_country;
-
-	/** @public string */
-	public $shipping_state;
-
-	/** @public string Method id of the shipping used */
-	public $shipping_method;
-
-	/** @public string Shipping method title */
-	public $shipping_method_title;
-
-	/** @public string Method id of the payment used */
-	public $payment_method;
-
-	/** @public string Payment method title */
-	public $payment_method_title;
-
-	/** @public string After tax discount total */
-	public $order_discount;
-
-	/** @public string Before tax discount total */
-	public $cart_discount;
-
-	/** @public string Tax for the items total */
-	public $order_tax;
-
-	/** @public string Shipping cost */
-	public $order_shipping;
-
-	/** @public string Shipping tax */
-	public $order_shipping_tax;
-
-	/** @public string Grand total */
-	public $order_total;
-
-	/** @public array Taxes array (tax rows) */
-	public $taxes;
-
-	/** @public int User ID */
-	public $customer_user;
-
-	/** @public int User ID */
-	public $user_id;
-
-	/** @public string */
-	public $completed_date;
-
-	/** @public string */
-	public $billing_address;
-
-	/** @public string */
-	public $formatted_billing_address;
-
-	/** @public string */
-	public $shipping_address;
-
-	/** @public string */
-	public $formatted_shipping_address;
-
-	/** @public string */
-	public $post_status;
-
 	/**
 	 * Get the order if ID is passed, otherwise the order is new and empty.
 	 *
@@ -196,67 +61,50 @@ class WC_Order {
 	 */
 	public function populate( $result ) {
 		// Standard post data
-		$this->id = $result->ID;
-		$this->order_date = $result->post_date;
-		$this->modified_date = $result->post_modified;
-		$this->customer_note = $result->post_excerpt;
-		$this->post_status = $result->post_status;
-		$this->order_custom_fields = get_post_meta( $this->id );
-
-		// Define the data we're going to load: Key => Default value
-		$load_data = apply_filters( 'woocommerce_load_order_data', array(
-			'order_key'				=> '',
-			'billing_first_name'	=> '',
-			'billing_last_name' 	=> '',
-			'billing_company'		=> '',
-			'billing_address_1'		=> '',
-			'billing_address_2'		=> '',
-			'billing_city'			=> '',
-			'billing_postcode'		=> '',
-			'billing_country'		=> '',
-			'billing_state' 		=> '',
-			'billing_email'			=> '',
-			'billing_phone'			=> '',
-			'shipping_first_name'	=> '',
-			'shipping_last_name'	=> '',
-			'shipping_company'		=> '',
-			'shipping_address_1'	=> '',
-			'shipping_address_2'	=> '',
-			'shipping_city'			=> '',
-			'shipping_postcode'		=> '',
-			'shipping_country'		=> '',
-			'shipping_state'		=> '',
-			'shipping_method'		=> '',
-			'shipping_method_title'	=> '',
-			'payment_method'		=> '',
-			'payment_method_title' 	=> '',
-			'order_discount'		=> '',
-			'cart_discount'			=> '',
-			'order_tax'				=> '',
-			'order_shipping'		=> '',
-			'order_shipping_tax'	=> '',
-			'order_total'			=> '',
-			'customer_user'			=> '',
-			'completed_date'		=> $this->modified_date
-		) );
-
-		// Load the data from the custom fields
-		foreach ( $load_data as $key => $default ) {
-			if ( isset( $this->order_custom_fields[ '_' . $key ][0] ) && $this->order_custom_fields[ '_' . $key ][0] !== '' ) {
-				$this->$key = $this->order_custom_fields[ '_' . $key ][0];
-			} else {
-				$this->$key = $default;
-			}
-		}
-
-		// Aliases
-		$this->user_id = (int) $this->customer_user;
+		$this->id                  = $result->ID;
+		$this->order_date          = $result->post_date;
+		$this->modified_date       = $result->post_modified;
+		$this->customer_message    = $result->post_excerpt;
+		$this->customer_note       = $result->post_excerpt;
+		$this->post_status         = $result->post_status;
 
 		// Get status
-		$terms = wp_get_object_terms( $this->id, 'shop_order_status', array( 'fields' => 'slugs' ) );
-		$this->status = isset( $terms[0] ) ? $terms[0] : 'pending';
+		$terms        = wp_get_object_terms( $this->id, 'shop_order_status', array( 'fields' => 'slugs' ) );
+		$this->status = isset( $terms[0] ) ? $terms[0] : apply_filters( 'woocommerce_default_order_status', 'pending' );
 	}
 
+	/**
+	 * __isset function.
+	 *
+	 * @access public
+	 * @param mixed $key
+	 * @return bool
+	 */
+	public function __isset( $key ) {
+		if ( ! $this->id )
+			return false;
+
+		return metadata_exists( 'post', $this->id, '_' . $key );
+	}
+
+	/**
+	 * __get function.
+	 *
+	 * @access public
+	 * @param mixed $key
+	 * @return mixed
+	 */
+	public function __get( $key ) {
+		// Get values or default if not set
+		if ( 'completed_date' == $key )
+			$value = ( $value = get_post_meta( $this->id, '_completed_date', true ) ) ? $value : $this->modified_date;
+		elseif ( 'user_id' == $key )
+			$value = ( $value = get_post_meta( $this->id, '_customer_user', true ) ) ? absint( $value ) : '';
+		else
+			$value = get_post_meta( $this->id, '_' . $key, true );
+
+		return $value;
+	}
 
 	/**
 	 * Check if an order key is valid.
@@ -269,7 +117,6 @@ class WC_Order {
 		if ( $key == $this->order_key ) return true;
 		return false;
 	}
-
 
 	/**
 	 * get_order_number function.
@@ -487,6 +334,15 @@ class WC_Order {
 	}
 
 	/**
+	 * Return an array of shipping costs within this order.
+	 *
+	 * @return void
+	 */
+	public function get_shipping_methods() {
+		return $this->get_items( 'shipping' );
+	}
+
+	/**
 	 * Get taxes, merged by code, formatted ready for output.
 	 *
 	 * @access public
@@ -633,15 +489,25 @@ class WC_Order {
 	}
 
 	/**
-	 * Gets shipping method title.
+	 * Gets formatted shipping method title.
 	 *
-	 * @access public
 	 * @return string
 	 */
 	public function get_shipping_method() {
-		return apply_filters( 'woocommerce_order_shipping_method', $this->shipping_method_title );
-	}
+		$labels = array();
 
+		// Backwards compat < 2.1 - get shipping title stored in meta
+		if ( $this->shipping_method_title )
+			$labels[] = $this->shipping_method_title;
+
+		// 2.1+ get line items for shipping
+		$shipping_methods = $this->get_shipping_methods();
+
+		foreach ( $shipping_methods as $shipping )
+			$labels[] = $shipping['name'];
+
+		return apply_filters( 'woocommerce_order_shipping_method', implode( ', ', $labels ) );
+	}
 
 	/**
 	 * Get item subtotal - this is the cost before discount.
@@ -964,6 +830,8 @@ class WC_Order {
 
 		if ( $fees = $this->get_fees() )
 			foreach( $fees as $id => $fee ) {
+				if ( $fee['line_total'] + $fee['line_tax'] == 0 )
+					continue;
 
 				if ( $tax_display == 'excl' ) {
 
@@ -1076,7 +944,7 @@ class WC_Order {
 
 			$_product = $this->get_product_from_item( $item );
 
-			if ($_product->exists() && $_product->is_downloadable()) :
+			if ( $_product && $_product->exists() && $_product->is_downloadable() ) :
 				$has_downloadable_item = true;
 			endif;
 
@@ -1095,12 +963,7 @@ class WC_Order {
 	 */
 	public function get_checkout_payment_url( $on_checkout = false ) {
 
-		$pay_url = get_permalink( woocommerce_get_page_id( 'checkout' ) );
-
-		if ( get_option( 'permalink_structure' ) )
-			$pay_url = trailingslashit( $pay_url ) . 'order-pay/' . $this->id;
-		else
-			$pay_url = add_query_arg( 'order-pay', $this->id, $pay_url );
+		$pay_url = woocommerce_get_endpoint_url( 'order-pay', $this->id, get_permalink( woocommerce_get_page_id( 'checkout' ) ) );
 
 		if ( get_option( 'woocommerce_force_ssl_checkout' ) == 'yes' || is_ssl() )
 			$pay_url = str_replace( 'http:', 'https:', $pay_url );
@@ -1123,12 +986,7 @@ class WC_Order {
 	 */
 	public function get_checkout_order_received_url() {
 
-		$order_received_url = get_permalink( woocommerce_get_page_id( 'checkout' ) );
-
-		if ( get_option( 'permalink_structure' ) )
-			$order_received_url = trailingslashit( $order_received_url ) . 'order-received/' . $this->id;
-		else
-			$order_received_url = add_query_arg( 'order-received', $this->id, $order_received_url );
+		$order_received_url = woocommerce_get_endpoint_url( 'order-received', $this->id, get_permalink( woocommerce_get_page_id( 'checkout' ) ) );
 
 		if ( get_option( 'woocommerce_force_ssl_checkout' ) == 'yes' || is_ssl() )
 			$order_received_url = str_replace( 'http:', 'https:', $order_received_url );
@@ -1156,12 +1014,7 @@ class WC_Order {
 	 * @return string
 	 */
 	public function get_view_order_url() {
-		$view_order_url = get_permalink( woocommerce_get_page_id( 'myaccount' ) );
-
-		if ( get_option( 'permalink_structure' ) )
-			$view_order_url = trailingslashit( $view_order_url ) . 'view-order/' . $this->id;
-		else
-			$view_order_url = add_query_arg( 'view-order', $this->id, $view_order_url );
+		$view_order_url = woocommerce_get_endpoint_url( 'view-order', $this->id, get_permalink( woocommerce_get_page_id( 'myaccount' ) ) );
 
 		return apply_filters( 'woocommerce_get_view_order_url', $view_order_url, $this );
 	}
@@ -1215,13 +1068,18 @@ class WC_Order {
 
 		$is_customer_note = intval( $is_customer_note );
 
-		if ( isset( $_SERVER['HTTP_HOST'] ) )
-			$comment_author_email 	= sanitize_email( strtolower( __( 'WooCommerce', 'woocommerce' ) ) . '@' . str_replace( 'www.', '', $_SERVER['HTTP_HOST'] ) );
-		else
-			$comment_author_email 	= sanitize_email( strtolower( __( 'WooCommerce', 'woocommerce' ) ) . '@noreply.com' );
+		if ( is_user_logged_in() && current_user_can( 'manage_woocommerce' ) ) {
+			$user                 = get_user_by( 'id', get_current_user_id() );
+			$comment_author       = $user->display_name;
+			$comment_author_email = $user->user_email;
+		} else {
+			$comment_author       = __( 'WooCommerce', 'woocommerce' );
+			$comment_author_email = strtolower( __( 'WooCommerce', 'woocommerce' ) ) . '@';
+			$comment_author_email .= isset( $_SERVER['HTTP_HOST'] ) ? str_replace( 'www.', '', $_SERVER['HTTP_HOST'] ) : 'noreply.com';
+			$comment_author_email = sanitize_email( $comment_author_email );
+		}
 
 		$comment_post_ID 		= $this->id;
-		$comment_author 		= __( 'WooCommerce', 'woocommerce' );
 		$comment_author_url 	= '';
 		$comment_content 		= $note;
 		$comment_agent			= 'WooCommerce';
