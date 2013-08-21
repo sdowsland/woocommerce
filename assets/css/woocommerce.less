@@ -18,86 +18,19 @@
 	font-weight: normal;
 	font-style: normal;
 }
+@font-face {
+	font-family: 'WooCommerce';
+	src:url('../fonts/WooCommerce.eot');
+	src:url('../fonts/WooCommerce.eot?#iefix') format('embedded-opentype'),
+		url('../fonts/WooCommerce.woff') format('woff'),
+		url('../fonts/WooCommerce.ttf') format('truetype'),
+		url('../fonts/WooCommerce.svg#WooCommerce') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
 
 /* =Global styles/layout
 -------------------------------------------------------------- */
-.woocommerce-message, .woocommerce-error, .woocommerce-info {
-	padding: 1em 1em 1em 3.5em;
-	margin: 0 0 2em;
-	position: relative;
-	.border_radius(4px);
-	.vertical_gradient( lighten( @secondary, 2 ), @secondary );
-	color: @secondarytext;
-	.text_shadow( 0, 1px, 0, lighten( @secondary, 4 ) );
-	list-style:none outside;
-	.clearfix();
-	width: auto;
-	-webkit-box-shadow:
-		inset 0 -2px 6px rgba(0,0,0,0.05),
-		inset 0 -2px 30px rgba(0,0,0,0.015),
-		inset 0 1px 0 #fff,
-		0 1px 2px rgba(0,0,0,0.3);
-	box-shadow:
-		inset 0 -2px 6px rgba(0,0,0,0.05),
-		inset 0 -2px 30px rgba(0,0,0,0.015),
-		inset 0 1px 0 #fff,
-		0 1px 2px rgba(0,0,0,0.3);
-
-	&:before {
-		content: "";
-		height: 1.5em;
-		width: 1.5em;
-		display:block;
-		position:absolute;
-		top: 0;
-		left: 1em;
-		font-family: sans-serif;
-		font-size:1em;
-		line-height: 1.5;
-		text-align: center;
-		color: #fff;
-		text-shadow:0 1px 0 rgba(0,0,0,0.2);
-		padding-top:1em;
-		.border_radius_bottom(4px);
-		.inset_box_shadow(0,-1px,0,0,rgba(0,0,0,0.1));
-	}
-
-	.button {
-		float: right;
-	}
-
-	li {
-		list-style:none outside;
-		padding-left:0;
-		margin-left:0;
-	}
-}
-
-.woocommerce-message {
-	border-top:3px solid #8fae1b;
-	&:before {
-		background-color:#8fae1b;
-		content: "\2713";
-	}
-}
-.woocommerce-info {
-	border-top:3px solid #1e85be;
-	&:before {
-		background-color:#1e85be;
-		content: "i";
-		font-family: Times, Georgia, serif;
-		font-style: italic;
-	}
-}
-.woocommerce-error {
-	border-top:3px solid #b81c23;
-	&:before {
-		background-color:#b81c23;
-		content: "\00d7";
-		font-weight: 700;
-	}
-}
-
 p.demo_store {
 	position:fixed;
 	top: 0;
@@ -122,6 +55,83 @@ p.demo_store {
 }
 
 .woocommerce, .woocommerce-page { // namespace to avoid conflict with common global class names
+
+	.woocommerce-message, .woocommerce-error, .woocommerce-info {
+		padding: 1em 1em 1em 3.5em !important;
+		margin: 0 0 2em !important;
+		position: relative;
+		.border_radius(4px);
+		.vertical_gradient( lighten( @secondary, 2 ), @secondary );
+		color: @secondarytext;
+		.text_shadow( 0, 1px, 0, lighten( @secondary, 4 ) );
+		list-style:none outside !important;
+		.clearfix();
+		width: auto;
+		-webkit-box-shadow:
+			inset 0 -2px 6px rgba(0,0,0,0.05),
+			inset 0 -2px 30px rgba(0,0,0,0.015),
+			inset 0 1px 0 #fff,
+			0 1px 2px rgba(0,0,0,0.3);
+		box-shadow:
+			inset 0 -2px 6px rgba(0,0,0,0.05),
+			inset 0 -2px 30px rgba(0,0,0,0.015),
+			inset 0 1px 0 #fff,
+			0 1px 2px rgba(0,0,0,0.3);
+
+		&:before {
+			content: "";
+			height: 1.5em;
+			width: 1.5em;
+			display:block;
+			position:absolute;
+			top: 0;
+			left: 1em;
+			font-family: sans-serif;
+			font-size:1em;
+			line-height: 1.5;
+			text-align: center;
+			color: #fff;
+			text-shadow:0 1px 0 rgba(0,0,0,0.2);
+			padding-top:1em;
+			.border_radius_bottom(4px);
+			.inset_box_shadow(0,-1px,0,0,rgba(0,0,0,0.1));
+		}
+
+		.button {
+			float: right;
+		}
+
+		li {
+			list-style:none outside !important;
+			padding-left:0 !important;
+			margin-left:0 !important;
+		}
+	}
+
+	.woocommerce-message {
+		border-top:3px solid #8fae1b;
+		&:before {
+			background-color:#8fae1b;
+			content: "\2713";
+		}
+	}
+	.woocommerce-info {
+		border-top:3px solid #1e85be;
+		&:before {
+			background-color:#1e85be;
+			content: "i";
+			font-family: Times, Georgia, serif;
+			font-style: italic;
+		}
+	}
+	.woocommerce-error {
+		border-top:3px solid #b81c23;
+		&:before {
+			background-color:#b81c23;
+			content: "\00d7";
+			font-weight: 700;
+		}
+	}
 
 	small.note {
 		display:block;
@@ -224,89 +234,89 @@ p.demo_store {
 		.woocommerce-tabs {
 
 			ul.tabs {
-			    list-style:none;
-			    padding: 0 0 0 1em;
-			    margin: 0 0 1.618em;
-			    overflow:hidden;
-			    position: relative;
+				list-style:none;
+				padding: 0 0 0 1em;
+				margin: 0 0 1.618em;
+				overflow:hidden;
+				position: relative;
 
-			    li {
-			    	border: 1px solid darken( @secondary, 10 );
-				    .vertical_gradient( @secondary, darken( @secondary, 10 ) );
-				    display: inline-block;
-				    position: relative;
-				    z-index: 0;
-				    .border_radius_top(4px);
-				    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.6);
-				    margin: 0 -5px;
-				    padding: 0 1em;
+				li {
+					border: 1px solid darken( @secondary, 10 );
+					.vertical_gradient( @secondary, darken( @secondary, 10 ) );
+					display: inline-block;
+					position: relative;
+					z-index: 0;
+					.border_radius_top(4px);
+					box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.6);
+					margin: 0 -5px;
+					padding: 0 1em;
 
-				    a {
-				    	display: inline-block;
-				    	padding: .5em 0;
-				    	font-weight:bold;
-				    	color: @secondarytext;
-				    	.darkorlighttextshadow( @secondarytext );
-				    	text-decoration: none;
+					a {
+						display: inline-block;
+						padding: .5em 0;
+						font-weight:bold;
+						color: @secondarytext;
+						.darkorlighttextshadow( @secondarytext );
+						text-decoration: none;
 
-				    	&:hover {
-				    		text-decoration:none;
-				    		color: lighten( @secondarytext, 10 );
-				    	}
-				    }
+						&:hover {
+							text-decoration:none;
+							color: lighten( @secondarytext, 10 );
+						}
+					}
 
-				    &.active {
-				    	background: @contentbg;
-					    z-index: 2;
-					    border-bottom-color: @contentbg;
+					&.active {
+						background: @contentbg;
+						z-index: 2;
+						border-bottom-color: @contentbg;
 
-					    a {
-					    	color: inherit;
-					    	text-shadow: inherit;
-					    }
+						a {
+							color: inherit;
+							text-shadow: inherit;
+						}
 
-					    &:before {
-					    	box-shadow: 2px 2px 0 @contentbg;
-					    }
+						&:before {
+							box-shadow: 2px 2px 0 @contentbg;
+						}
 
-					    &:after {
-					    	box-shadow: -2px 2px 0 @contentbg;
-					    }
-				    }
-				    &:before, &:after {
-				    	border: 1px solid darken( @secondary, 10 );
-					    position:absolute;
-					    bottom: -1px;
-					    width: 5px;
-					    height: 5px;
-					    content: " ";
-				    }
-				    &:before {
-				    	left: -6px;
-				    	-webkit-border-bottom-right-radius: 4px;
-				    	-mox-border-bottom-right-radius: 4px;
-					    border-bottom-right-radius: 4px;
-					    border-width: 0 1px 1px 0;
-					    box-shadow: 2px 2px 0 darken( @secondary, 10 );
-				    }
-				    &:after {
-				    	right: -6px;
-				    	-webkit-border-bottom-left-radius: 4px;
-				    	-mox-border-bottom-left-radius: 4px;
-					    border-bottom-left-radius: 4px;
-					    border-width: 0 0 1px 1px;
-					    box-shadow: -2px 2px 0 darken( @secondary, 10 );
-				    }
-			    }
-			    &:before {
-			    	position:absolute;
-				    content: " ";
-				    width: 100%;
-				    bottom: 0;
-				    left: 0;
-				    border-bottom: 1px solid darken( @secondary, 10 );
-				    z-index: 1;
-			    }
+						&:after {
+							box-shadow: -2px 2px 0 @contentbg;
+						}
+					}
+					&:before, &:after {
+						border: 1px solid darken( @secondary, 10 );
+						position:absolute;
+						bottom: -1px;
+						width: 5px;
+						height: 5px;
+						content: " ";
+					}
+					&:before {
+						left: -6px;
+						-webkit-border-bottom-right-radius: 4px;
+						-mox-border-bottom-right-radius: 4px;
+						border-bottom-right-radius: 4px;
+						border-width: 0 1px 1px 0;
+						box-shadow: 2px 2px 0 darken( @secondary, 10 );
+					}
+					&:after {
+						right: -6px;
+						-webkit-border-bottom-left-radius: 4px;
+						-mox-border-bottom-left-radius: 4px;
+						border-bottom-left-radius: 4px;
+						border-width: 0 0 1px 1px;
+						box-shadow: -2px 2px 0 darken( @secondary, 10 );
+					}
+				}
+				&:before {
+					position:absolute;
+					content: " ";
+					width: 100%;
+					bottom: 0;
+					left: 0;
+					border-bottom: 1px solid darken( @secondary, 10 );
+					z-index: 1;
+				}
 			}
 			.panel {
 				margin: 0 0 2em;
@@ -523,38 +533,38 @@ p.demo_store {
 
 	a.button, button.button, input.button, #respond input#submit, #content input.button {
 		font-size: 100%;
-	    margin: 0;
-	    line-height: 1em;
-	    cursor: pointer;
-	    position: relative;
-	    font-family: inherit;
+		margin: 0;
+		line-height: 1em;
+		cursor: pointer;
+		position: relative;
+		font-family: inherit;
 		text-decoration:none;
 		overflow: visible;
 		padding: 6px 10px;
-	    text-decoration:none;
-	    font-weight:bold;
-	    .border_radius(2px);
-	    left: auto;
-	    text-shadow:0 1px 0 @secondary + #111;
-	    color: @secondarytext;
-	    .darkorlighttextshadow( @secondarytext );
-	    border: 1px solid darken( @secondary, 20 );
+		text-decoration:none;
+		font-weight:bold;
+		.border_radius(2px);
+		left: auto;
+		text-shadow:0 1px 0 @secondary + #111;
+		color: @secondarytext;
+		.darkorlighttextshadow( @secondarytext );
+		border: 1px solid darken( @secondary, 20 );
 		.vertical_gradient( @secondary, darken( @secondary, 10 ) );
 		white-space: nowrap;
 		display: inline-block;
 
-	    -webkit-box-shadow:
-	        inset 0 -1px 0 rgba(0,0,0,0.075),
-	        inset 0 1px 0 rgba(255,255,255,0.3),
-	        0 1px 2px rgba(0,0,0,0.1);
-	    -moz-box-shadow:
-	        inset 0 -1px 0 rgba(0,0,0,0.075),
-	        inset 0 1px 0 rgba(255,255,255,0.3),
-	        0 1px 2px rgba(0,0,0,0.1);
-	    box-shadow:
-	        inset 0 -1px 0 rgba(0,0,0,0.075),
-	        inset 0 1px 0 rgba(255,255,255,0.3),
-	        0 1px 2px rgba(0,0,0,0.1);
+		-webkit-box-shadow:
+			inset 0 -1px 0 rgba(0,0,0,0.075),
+			inset 0 1px 0 rgba(255,255,255,0.3),
+			0 1px 2px rgba(0,0,0,0.1);
+		-moz-box-shadow:
+			inset 0 -1px 0 rgba(0,0,0,0.075),
+			inset 0 1px 0 rgba(255,255,255,0.3),
+			0 1px 2px rgba(0,0,0,0.1);
+		box-shadow:
+			inset 0 -1px 0 rgba(0,0,0,0.075),
+			inset 0 1px 0 rgba(255,255,255,0.3),
+			0 1px 2px rgba(0,0,0,0.1);
 
 		&.loading {
 			color: lighten( @secondarytext, 10 );
@@ -573,14 +583,14 @@ p.demo_store {
 
 		&.added {
 			&:before {
-				content: "";
 				position:absolute;
 				height: 16px;
 				width: 16px;
 				top: 0.35em;
 				right: -26px;
 				text-indent: 0;
-				background: url(../images/success.png) no-repeat;
+				font-family: 'WooCommerce';
+				content: "\e017";
 			}
 		}
 
@@ -643,7 +653,7 @@ p.demo_store {
 
 		/* Hide buttons for opera */
 		noindex:-o-prefocus, input[type=number] {
-		    padding-right: 1.2em;
+			padding-right: 1.2em;
 		}
 
 		.plus, .minus {
@@ -657,34 +667,34 @@ p.demo_store {
 			height: 15px;
 			text-decoration:none;
 			overflow: visible;
-		    text-decoration:none;
-		    font-weight:bold;
-		    cursor: pointer;
-		    line-height: 13px;
-		    font-size: 12px;
-		    .border_radius(2px);
+			text-decoration:none;
+			font-weight:bold;
+			cursor: pointer;
+			line-height: 13px;
+			font-size: 12px;
+			.border_radius(2px);
 
-		    color: @secondarytext;
+			color: @secondarytext;
 			.darkorlighttextshadow( @secondarytext );
 			border: 1px solid darken( @secondary, 20 );
 			.vertical_gradient( @secondary, darken( @secondary, 10 ) );
 
-		    -webkit-box-shadow:
-		        inset 0 -1px 0 rgba(0,0,0,0.075),
-		        inset 0 1px 0 rgba(255,255,255,0.3),
-		        0 1px 2px rgba(0,0,0,0.1);
-		    -moz-box-shadow:
-		        inset 0 -1px 0 rgba(0,0,0,0.075),
-		        inset 0 1px 0 rgba(255,255,255,0.3),
-		        0 1px 2px rgba(0,0,0,0.1);
-		    box-shadow:
-		        inset 0 -1px 0 rgba(0,0,0,0.075),
-		        inset 0 1px 0 rgba(255,255,255,0.3),
-		        0 1px 2px rgba(0,0,0,0.1);
+			-webkit-box-shadow:
+				inset 0 -1px 0 rgba(0,0,0,0.075),
+				inset 0 1px 0 rgba(255,255,255,0.3),
+				0 1px 2px rgba(0,0,0,0.1);
+			-moz-box-shadow:
+				inset 0 -1px 0 rgba(0,0,0,0.075),
+				inset 0 1px 0 rgba(255,255,255,0.3),
+				0 1px 2px rgba(0,0,0,0.1);
+			box-shadow:
+				inset 0 -1px 0 rgba(0,0,0,0.075),
+				inset 0 1px 0 rgba(255,255,255,0.3),
+				0 1px 2px rgba(0,0,0,0.1);
 
-		    &:hover {
-		    	.vertical_gradient( @secondary, darken( @secondary, 15 ) );
-		    }
+			&:hover {
+				.vertical_gradient( @secondary, darken( @secondary, 15 ) );
+			}
 		}
 
 		.plus {
@@ -740,7 +750,7 @@ p.demo_store {
 				background:none;
 				list-style: none;
 				li {
-					padding: 00;
+					padding: 0;
 					margin: 0 0 20px;
 					border: 0;
 					position: relative;
@@ -768,6 +778,7 @@ p.demo_store {
 						border: 1px solid darken( @secondary, 3 );
 						.border_radius(4px);
 						padding: 1em 1em 0;
+						.clearfix();
 						p {
 							margin: 0 0 1em;
 						}
@@ -775,6 +786,20 @@ p.demo_store {
 							font-size: 0.83em;
 						}
 					}
+				}
+				ul.children {
+					list-style: none outside;
+					margin: 20px 0 0 50px;
+
+					.star-rating {
+						display: none;
+					}
+				}
+				#respond {
+					border: 1px solid darken( @secondary, 3 );
+					.border_radius(4px);
+					padding: 1em 1em 0;
+					margin: 20px 0 0 50px;
 				}
 			}
 			.commentlist > li:before {
@@ -1146,8 +1171,15 @@ p.demo_store {
 						border-top: 0;
 					}
 				}
+				th {
+					padding: 6px 12px 0 0;
+					width: 25%;
+				}
+				td {
+					padding: 6px 0;
+				}
 				td, th {
-					padding: 6px 3px;
+					vertical-align: top;
 				}
 				small {
 					display:block;
@@ -1162,7 +1194,6 @@ p.demo_store {
 			}
 			tr td, tr th {
 				border-top: 1px solid @secondary;
-				padding: 6px 6px;
 			}
 			a.button.alt {
 				width: 193px;
@@ -1219,20 +1250,8 @@ p.demo_store {
 				-webkit-box-shadow:none;
 				box-shadow:none;
 			}
-			&.validate-required.woocommerce-validated {
-				input.input-text {
-					background-image: url(../images/icons/valid.png);
-					background-position: 95% center;
-					background-repeat: no-repeat;
-				}
-			}
 			&.validate-required.woocommerce-invalid {
-				input.input-text {
-					background-image: url(../images/icons/invalid.png);
-					background-position: 95% center;
-					background-repeat: no-repeat;
-				}
-				.chzn-single, .chzn-drop, input.input-text, select {
+				.chosen-single, .chosen-drop, input.input-text, select {
 					border-color: #fb7f88;
 				}
 			}
@@ -1272,6 +1291,9 @@ p.demo_store {
 		.amount {
 			font-weight: bold;
 		}
+	}
+	p.woocommerce-shipping-contents {
+		margin: 0;
 	}
 
 	/* =Checkout
@@ -1491,12 +1513,17 @@ p.demo_store {
 			}
 			li.chosen {
 				a {
-					padding: 0 6px 0 18px;
+					padding:0 6px;
+					text-decoration: none;
 					border: 1px solid @tertiary;
-					background: @tertiary url(../images/cross_white.png) no-repeat 6px center;
+					background: @tertiary;
 					.inset_box_shadow(0, 1px, 1px, rgba(255,255,255,0.5));
 					color: @tertiarytext;
 					.border_radius(3px);
+					&:before {
+						.iconbefore;
+						content: "\e013";
+					}
 				}
 			}
 			small.count {
@@ -1522,13 +1549,18 @@ p.demo_store {
 				padding: 0 1px 1px 0;
 				list-style:none;
 				a {
-					padding: 0 6px 0 18px;
+					padding:0 6px;
+					text-decoration: none;
 					border: 1px solid @tertiary;
-					background: @tertiary url(../images/cross_white.png) no-repeat 6px center;
+					background: @tertiary;
 					.inset_box_shadow(0, 1px, 1px, rgba(255,255,255,0.5));
 					color: @tertiarytext;
 					.border_radius(3px);
 					float: left;
+					&:before {
+						.iconbefore;
+						content: "\e013";
+					}
 				}
 			}
 		}
@@ -1552,11 +1584,11 @@ p.demo_store {
 				float:left;
 			}
 		}
-	   .ui-slider {
+		.ui-slider {
 			position: relative;
 			text-align:left;
 		}
-	   .ui-slider .ui-slider-handle {
+		.ui-slider .ui-slider-handle {
 			position:absolute;
 			z-index: 2;
 			width: 0.9em;
@@ -1581,7 +1613,7 @@ p.demo_store {
 				margin-left: -1em;
 			}
 		}
-	   .ui-slider .ui-slider-range {
+		.ui-slider .ui-slider-range {
 			position:absolute;
 			z-index: 1;
 			font-size: .7em;
@@ -1591,22 +1623,21 @@ p.demo_store {
 			.inset_box_shadow(0,0,0,1px,rgba(0,0,0,0.5));
 			.border_radius(1em);
 		}
-	   .price_slider_wrapper .ui-widget-content {
+		.price_slider_wrapper .ui-widget-content {
 			.border_radius(1em);
 			.vertical_gradient( @quaternary, lighten( @quaternary, 30 ) );
 		}
-	   .ui-slider-horizontal {
+		.ui-slider-horizontal {
 			height: .5em;
 		}
-	   .ui-slider-horizontal .ui-slider-range {
+		.ui-slider-horizontal .ui-slider-range {
 			top: 0;
 			height: 100%;
 		}
-	   .ui-slider-horizontal .ui-slider-range-min {
+		.ui-slider-horizontal .ui-slider-range-min {
 			left: -1px;
 		}
-
-	   .ui-slider-horizontal .ui-slider-range-max {
+		.ui-slider-horizontal .ui-slider-range-max {
 			right: -1px;
 		}
 	}
@@ -1632,18 +1663,6 @@ p.demo_store {
 					background-size: 16px 16px;
 				}
 			}
-			&.added:before {
-				background: url(../images/success@2x.png) no-repeat;
-				background-size:16px 14px;
-			}
-		}
-		.woocommerce form .form-row.validate-required.woocommerce-validated input.input-text, .woocommerce-page form .form-row.validate-required.woocommerce-validated input.input-text {
-			background-image: url(../images/icons/valid@2x.png);
-			background-size: 12px 9px;
-		}
-		.woocommerce form .form-row.validate-required.woocommerce-invalid input.input-text, .woocommerce-page form .form-row.validate-required.woocommerce-invalid input.input-text {
-			background-image: url(../images/icons/invalid@2x.png);
-			background-size: 12px 9px;
 		}
 		p.stars {
 			span {

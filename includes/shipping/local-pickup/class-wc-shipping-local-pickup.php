@@ -26,13 +26,13 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 		$this->init();
 	}
 
-    /**
-     * init function.
-     *
-     * @access public
-     * @return void
-     */
-    function init() {
+	/**
+	 * init function.
+	 *
+	 * @access public
+	 * @return void
+	 */
+	function init() {
 
 		// Load the settings.
 		$this->init_form_fields();
@@ -72,52 +72,52 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 	 * @return void
 	 */
 	function init_form_fields() {
-    	global $woocommerce;
-    	$this->form_fields = array(
+		global $woocommerce;
+		$this->form_fields = array(
 			'enabled' => array(
-				'title' 		=> __( 'Enable', 'woocommerce' ),
-				'type' 			=> 'checkbox',
-				'label' 		=> __( 'Enable local pickup', 'woocommerce' ),
-				'default' 		=> 'no'
+				'title'			=> __( 'Enable', 'woocommerce' ),
+				'type'			=> 'checkbox',
+				'label'			=> __( 'Enable local pickup', 'woocommerce' ),
+				'default'		=> 'no'
 			),
 			'title' => array(
-				'title' 		=> __( 'Title', 'woocommerce' ),
-				'type' 			=> 'text',
-				'description' 	=> __( 'This controls the title which the user sees during checkout.', 'woocommerce' ),
+				'title'			=> __( 'Title', 'woocommerce' ),
+				'type'			=> 'text',
+				'description'	=> __( 'This controls the title which the user sees during checkout.', 'woocommerce' ),
 				'default'		=> __( 'Local Pickup', 'woocommerce' ),
-				'desc_tip'      => true,
+				'desc_tip'	  	=> true,
 			),
 			'codes' => array(
-				'title' 		=> __( 'Zip/Post Codes', 'woocommerce' ),
+				'title'			=> __( 'Zip/Post Codes', 'woocommerce' ),
 				'type' 			=> 'textarea',
-				'description' 	=> __( 'What zip/post codes would you like to offer delivery to? Separate codes with a comma. Accepts wildcards, e.g. P* will match a postcode of PE30.', 'woocommerce' ),
+				'description'	=> __( 'What zip/post codes would you like to offer delivery to? Separate codes with a comma. Accepts wildcards, e.g. P* will match a postcode of PE30.', 'woocommerce' ),
 				'default'		=> '',
-				'desc_tip'      => true,
+				'desc_tip'		=> true,
 				'placeholder'	=> '12345, 56789 etc'
 			),
 			'availability' => array(
-				'title' 		=> __( 'Method availability', 'woocommerce' ),
-				'type' 			=> 'select',
-				'default' 		=> 'all',
+				'title'			=> __( 'Method availability', 'woocommerce' ),
+				'type'			=> 'select',
+				'default'		=> 'all',
 				'class'			=> 'availability',
 				'options'		=> array(
-					'all' 		=> __( 'All allowed countries', 'woocommerce' ),
-					'specific' 	=> __( 'Specific Countries', 'woocommerce' )
+					'all'		=> __( 'All allowed countries', 'woocommerce' ),
+					'specific'	=> __( 'Specific Countries', 'woocommerce' )
 				)
 			),
 			'countries' => array(
-				'title' 		=> __( 'Specific Countries', 'woocommerce' ),
-				'type' 			=> 'multiselect',
+				'title'			=> __( 'Specific Countries', 'woocommerce' ),
+				'type'			=> 'multiselect',
 				'class'			=> 'chosen_select',
 				'css'			=> 'width: 450px;',
-				'default' 		=> '',
-				'options'		=> $woocommerce->countries->countries
+				'default'		=> '',
+				'options'		=> $woocommerce->countries->get_shipping_countries()
 			),
 			'apply_base_tax' => array(
-				'title' 		=> __( 'Apply base tax rate', 'woocommerce' ),
-				'type' 			=> 'checkbox',
-				'label' 		=> __( 'When this shipping method is chosen, apply the base tax rate rather than for the customer\'s given address.', 'woocommerce' ),
-				'default' 		=> 'no'
+				'title'			=> __( 'Apply base tax rate', 'woocommerce' ),
+				'type'			=> 'checkbox',
+				'label'			=> __( 'When this shipping method is chosen, apply the base tax rate rather than for the customer\'s given address.', 'woocommerce' ),
+				'default'		=> 'no'
 			),
 		);
 	}
@@ -133,8 +133,8 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 		<h3><?php echo $this->method_title; ?></h3>
 		<p><?php _e( 'Local pickup is a simple method which allows the customer to pick up their order themselves.', 'woocommerce' ); ?></p>
 		<table class="form-table">
-    		<?php $this->generate_settings_html(); ?>
-    	</table> <?php
+			<?php $this->generate_settings_html(); ?>
+		</table> <?php
 	}
 
 	/**
@@ -149,11 +149,11 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 
 		$is_available = true;
 
-    	if ( $this->enabled == "no" ) {
+		if ( $this->enabled == "no" ) {
 
-	    	$is_available = false;
+			$is_available = false;
 
-    	} else {
+		} else {
 
 			// If post codes are listed, let's use them.
 			$codes = '';
@@ -191,13 +191,10 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 
 				} else {
 
-					$ship_to_countries = '';
-
-					if ( $this->availability == 'specific' ) {
+					if ( $this->availability == 'specific' )
 						$ship_to_countries = $this->countries;
-					} elseif ( get_option( 'woocommerce_allowed_countries' ) == 'specific' ) {
-						$ship_to_countries = get_option( 'woocommerce_specific_allowed_countries' );
-					}
+					else
+						$ship_to_countries = array_keys( $woocommerce->countries->get_shipping_countries() );
 
 					if ( is_array( $ship_to_countries ) && ! in_array( $package['destination']['country'], $ship_to_countries ) ) {
 						$is_available = false;
@@ -205,13 +202,10 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 
 				}
 			} else {
-				$ship_to_countries = '';
-
-				if ( $this->availability == 'specific' ) {
+				if ( $this->availability == 'specific' )
 					$ship_to_countries = $this->countries;
-				} elseif ( get_option( 'woocommerce_allowed_countries' ) == 'specific' ) {
-					$ship_to_countries = get_option( 'woocommerce_specific_allowed_countries' );
-				}
+				else
+					$ship_to_countries = array_keys( $woocommerce->countries->get_shipping_countries() );
 
 				if ( is_array( $ship_to_countries ) && ! in_array( $package['destination']['country'], $ship_to_countries ) ) {
 					$is_available = false;
@@ -227,14 +221,16 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 	/**
 	 * taxable_address function.
 	 *
-	 * @access public
-	 * @param mixed $address
-	 * @return void
+	 * @param array $address
+	 * @return array
 	 */
-	function taxable_address( $address ) {
+	public function taxable_address( $address ) {
 		global $woocommerce;
 
-		if ( ! empty( $woocommerce->session->chosen_shipping_method ) && $woocommerce->session->chosen_shipping_method == 'local_pickup' ) {
+		// Only apply if all packages are being shipped via local pickup
+		$chosen_shipping_methods = array_unique( WC()->session->get( 'chosen_shipping_methods' ) );
+
+		if ( sizeof( $chosen_shipping_methods ) == 1 && $chosen_shipping_methods[0] == 'local_pickup' ) {
 			if ( $this->get_option( 'apply_base_tax' ) == 'yes' ) {
 
 				$country 	= $woocommerce->countries->get_base_country();
@@ -252,7 +248,7 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 	 * @access public
 	 * @return void
 	 */
-	function method_chosen( $method ) {
+	public function method_chosen( $method ) {
 		global $woocommerce;
 
 		if ( $method == 'local_pickup' && $this->get_option( 'apply_base_tax' ) == 'yes' ) {
@@ -260,15 +256,15 @@ class WC_Shipping_Local_Pickup extends WC_Shipping_Method {
 		}
 	}
 
-    /**
-     * clean function.
-     *
-     * @access public
-     * @param mixed $code
-     * @return string
-     */
-    function clean( $code ) {
-    	return str_replace( '-', '', sanitize_title( $code ) ) . ( strstr( $code, '*' ) ? '*' : '' );
-    }
+	/**
+	 * clean function.
+	 *
+	 * @access public
+	 * @param mixed $code
+	 * @return string
+	 */
+	function clean( $code ) {
+		return str_replace( '-', '', sanitize_title( $code ) ) . ( strstr( $code, '*' ) ? '*' : '' );
+	}
 
 }

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * The WooCommerce product variation class handles product variation data.
  *
  * @class 		WC_Product_Variation
- * @version		2.0.0
+ * @version		2.1.0
  * @package		WooCommerce/Classes
  * @category	Class
  * @author 		WooThemes
@@ -169,7 +169,7 @@ class WC_Product_Variation extends WC_Product {
 	 * @access public
 	 * @return bool
 	 */
-	function exists() {
+	public function exists() {
 		return empty( $this->id ) ? false : true;
 	}
 
@@ -190,7 +190,7 @@ class WC_Product_Variation extends WC_Product {
 			$visible = false;
 
 		// Price not set
-		elseif ( $this->price == "" )
+		elseif ( $this->get_price() == "" )
 			$visible = false;
 
 		return apply_filters( 'woocommerce_variation_is_visible', $visible, $this->variation_id, $this->id );
@@ -229,17 +229,17 @@ class WC_Product_Variation extends WC_Product {
      *
      * @return string containing the formatted price
      */
-	public function get_price_html() {
+	public function get_price_html( $price = '' ) {
 
-		if ( $this->price !== '' ) {
-			if ( $this->price == $this->sale_price && $this->sale_price < $this->regular_price ) {
+		if ( $this->get_price() !== '' ) {
+			if ( $this->is_on_sale() ) {
 
-				$price = '<del>' . woocommerce_price( $this->regular_price ) . '</del> <ins>' . woocommerce_price( $this->sale_price ) . '</ins>';
+				$price = '<del>' . woocommerce_price( $this->get_regular_price() ) . '</del> <ins>' . woocommerce_price( $this->get_sale_price() ) . '</ins>';
 				$price = apply_filters( 'woocommerce_variation_sale_price_html', $price, $this );
 
-			} elseif ( $this->price > 0 ) {
+			} elseif ( $this->get_price() > 0 ) {
 
-				$price = woocommerce_price( $this->price );
+				$price = woocommerce_price( $this->get_price() );
 				$price = apply_filters( 'woocommerce_variation_price_html', $price, $this );
 
 			} else {
@@ -252,9 +252,8 @@ class WC_Product_Variation extends WC_Product {
 			$price = apply_filters( 'woocommerce_variation_empty_price_html', '', $this );
 		}
 
-		return $price;
+		return apply_filters( 'woocommerce_get_variation_price_html', $price, $this );
 	}
-
 
     /**
      * Gets the main product image.
@@ -281,114 +280,90 @@ class WC_Product_Variation extends WC_Product {
 		return $image;
     }
 
-
 	/**
-	 * Set stock level of the product.
+	 * Set stock level of the product variation.
 	 *
-	 * @access public
-	 * @param mixed $amount (default: null)
-	 * @return int Stock
+	 * @param int $amount
+	 * @param boolean $force_variation_stock If true, the variation's stock will be updated and not the parents.
 	 */
-	function set_stock( $amount = null ) {
-		global $woocommerce;
+	function set_stock( $amount = null, $force_variation_stock = false ) {
+		if ( is_null( $amount ) )
+			return;
 
-		if ( $this->variation_has_stock ) {
-			if ( $this->managing_stock() && ! is_null( $amount ) ) {
+		if ( $amount === '' && $force_variation_stock ) {
 
-				$this->stock = intval( $amount );
-				$this->total_stock = intval( $amount );
-				update_post_meta( $this->variation_id, '_stock', $this->stock );
-				$woocommerce->get_helper( 'transient' )->clear_product_transients( $this->id ); // Clear transient
+			// If amount is an empty string, stock management is being turned off at variation level
+			$this->variation_has_stock = false;
+			$this->stock               = '';
+			unset( $this->manage_stock );
 
-				// Check parents out of stock attribute
-				if ( ! $this->is_in_stock() ) {
+			// Update meta
+			update_post_meta( $this->variation_id, '_stock', '' );
 
-					// Check parent
-					$parent_product = get_product( $this->id );
+		} elseif ( $this->variation_has_stock || $force_variation_stock ) {
 
-					// Only continue if the parent has backorders off
-					if ( ! $parent_product->backorders_allowed() && $parent_product->get_total_stock() <= 0 )
-						$this->set_stock_status( 'outofstock' );
+			// Update stock amount
+			$this->stock = intval( $amount );
 
-				} elseif ( $this->is_in_stock() ) {
-					$this->set_stock_status( 'instock' );
-				}
+			// Update meta
+			update_post_meta( $this->variation_id, '_stock', $this->stock );
 
-				return apply_filters( 'woocommerce_stock_amount', $this->stock );
+			// Clear total stock transient
+			delete_transient( 'wc_product_total_stock_' . $this->id );
+
+			// Check parents out of stock attribute
+			if ( ! $this->is_in_stock() ) {
+
+				// Check parent
+				$parent_product = get_product( $this->id );
+
+				// Only continue if the parent has backorders off
+				if ( ! $parent_product->backorders_allowed() && $parent_product->get_total_stock() <= 0 )
+					$this->set_stock_status( 'outofstock' );
+
+			} elseif ( $this->is_in_stock() ) {
+				$this->set_stock_status( 'instock' );
 			}
+
+			// Trigger action
+			do_action( 'woocommerce_product_set_stock', $this );
+
+			return $this->get_stock_quantity();
+
 		} else {
+
 			return parent::set_stock( $amount );
+
 		}
 	}
-
 
 	/**
 	 * Reduce stock level of the product.
 	 *
-	 * @access public
 	 * @param int $by (default: 1) Amount to reduce by
 	 * @return int stock level
 	 */
 	public function reduce_stock( $by = 1 ) {
-		global $woocommerce;
-
 		if ( $this->variation_has_stock ) {
-			if ( $this->managing_stock() ) {
-
-				$this->stock 		= $this->stock - $by;
-				$this->total_stock 	= $this->total_stock - $by;
-				update_post_meta( $this->variation_id, '_stock', $this->stock );
-				$woocommerce->get_helper( 'transient' )->clear_product_transients( $this->id ); // Clear transient
-
-				// Check parents out of stock attribute
-				if ( ! $this->is_in_stock() ) {
-
-					// Check parent
-					$parent_product = get_product( $this->id );
-
-					// Only continue if the parent has backorders off
-					if ( ! $parent_product->backorders_allowed() && $parent_product->get_total_stock() <= 0 )
-						$this->set_stock_status( 'outofstock' );
-
-				}
-
-				return apply_filters( 'woocommerce_stock_amount', $this->stock );
-			}
+			return $this->set_stock( $this->stock - $by );
 		} else {
 			return parent::reduce_stock( $by );
 		}
 	}
 
-
 	/**
 	 * Increase stock level of the product.
 	 *
-	 * @access public
 	 * @param int $by (default: 1) Amount to increase by
 	 * @return int stock level
 	 */
 	public function increase_stock( $by = 1 ) {
-		global $woocommerce;
-
-		if ($this->variation_has_stock) :
-			if ($this->managing_stock()) :
-
-				$this->stock 		= $this->stock + $by;
-				$this->total_stock 	= $this->total_stock + $by;
-				update_post_meta( $this->variation_id, '_stock', $this->stock );
-				$woocommerce->get_helper( 'transient' )->clear_product_transients( $this->id ); // Clear transient
-
-				// Parents out of stock attribute
-				if ( $this->is_in_stock() )
-					$this->set_stock_status( 'instock' );
-
-				return apply_filters( 'woocommerce_stock_amount', $this->stock );
-			endif;
-		else :
+		if ( $this->variation_has_stock ) {
+			return $this->set_stock( $this->stock + $by );
+		} else {
 			return parent::increase_stock( $by );
-		endif;
+		}
 	}
-
 
 	/**
 	 * Get the shipping class, and if not set, get the shipping class of the parent.
@@ -409,7 +384,6 @@ class WC_Product_Variation extends WC_Product {
 
 		return $this->variation_shipping_class;
 	}
-
 
 	/**
 	 * Returns the product shipping class ID.
@@ -453,7 +427,6 @@ class WC_Product_Variation extends WC_Product {
 		// allow overriding based on the particular file being requested
 		return apply_filters( 'woocommerce_file_download_path', $file_path, $this->variation_id, $download_id );
 	}
-
 
 	/**
 	 * Get product name with extra details such as SKU, price and attributes. Used within admin.

@@ -58,6 +58,7 @@ class WC_Checkout {
 			$this->checkout_fields['account']['account_username'] = array(
 				'type' 			=> 'text',
 				'label' 		=> __( 'Account username', 'woocommerce' ),
+				'required'      => true,
 				'placeholder' 	=> _x( 'Username', 'placeholder', 'woocommerce' )
 			);
 		}
@@ -66,6 +67,7 @@ class WC_Checkout {
 			$this->checkout_fields['account']['account_password'] = array(
 				'type' 				=> 'password',
 				'label' 			=> __( 'Account password', 'woocommerce' ),
+				'required'          => true,
 				'placeholder' 		=> _x( 'Password', 'placeholder', 'woocommerce' )
 			);
 		}
@@ -185,10 +187,14 @@ class WC_Checkout {
 
 		// Store user data
 		if ( $this->checkout_fields['billing'] )
-			foreach ( $this->checkout_fields['billing'] as $key => $field )
+			foreach ( $this->checkout_fields['billing'] as $key => $field ) {
 				update_post_meta( $order_id, '_' . $key, $this->posted[ $key ] );
 
-		if ( $this->checkout_fields['shipping'] && ( $woocommerce->cart->needs_shipping() || get_option('woocommerce_require_shipping_address') == 'yes' ) ) {
+				if ( $this->customer_id )
+					update_user_meta( $this->customer_id, $key, $this->posted[ $key ] );
+			}
+
+		if ( $this->checkout_fields['shipping'] && $woocommerce->cart->needs_shipping() ) {
 			foreach ( $this->checkout_fields['shipping'] as $key => $field ) {
 				$postvalue = false;
 
@@ -264,6 +270,26 @@ class WC_Checkout {
 			woocommerce_add_order_item_meta( $item_id, '_line_tax', woocommerce_format_decimal( $fee->tax ) );
 		}
 
+		// Store shipping for all packages
+		$packages = WC()->shipping->get_packages();
+
+		foreach ( $packages as $i => $package ) {
+			if ( isset( $package['rates'][ $this->shipping_methods[ $i ] ] ) ) {
+
+				$method = $package['rates'][ $this->shipping_methods[ $i ] ];
+
+				$item_id = woocommerce_add_order_item( $order_id, array(
+			 		'order_item_name' 		=> $method->label,
+			 		'order_item_type' 		=> 'shipping'
+			 	) );
+
+				if ( $item_id ) {
+			 		woocommerce_add_order_item_meta( $item_id, 'method_id', $method->id );
+		 			woocommerce_add_order_item_meta( $item_id, 'cost', woocommerce_format_decimal( $method->cost ) );
+		 		}
+			}
+		}
+
 		// Store tax rows
 		foreach ( array_keys( $woocommerce->cart->taxes + $woocommerce->cart->shipping_taxes ) as $key ) {
 
@@ -298,17 +324,10 @@ class WC_Checkout {
 			}
 		}
 
-		// Store meta
-		if ( $this->shipping_method ) {
-			update_post_meta( $order_id, '_shipping_method', 		$this->shipping_method->id );
-			update_post_meta( $order_id, '_shipping_method_title', 	$this->shipping_method->label );
-		}
-
 		if ( $this->payment_method ) {
 			update_post_meta( $order_id, '_payment_method', 		$this->payment_method->id );
 			update_post_meta( $order_id, '_payment_method_title', 	$this->payment_method->get_title() );
 		}
-
 		update_post_meta( $order_id, '_order_shipping', 		woocommerce_format_total( $woocommerce->cart->shipping_total ) );
 		update_post_meta( $order_id, '_order_discount', 		woocommerce_format_total( $woocommerce->cart->get_order_discount_total() ) );
 		update_post_meta( $order_id, '_cart_discount', 			woocommerce_format_total( $woocommerce->cart->get_cart_discount_total() ) );
@@ -373,8 +392,14 @@ class WC_Checkout {
 			$this->posted['ship_to_different_address']  = false;
 
 		// Update customer shipping and payment method to posted method
-		$woocommerce->session->chosen_shipping_method 	= $this->posted['shipping_method'];
-		$woocommerce->session->chosen_payment_method	= $this->posted['payment_method'];
+		$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+
+		if ( isset( $this->posted['shipping_method'] ) && is_array( $this->posted['shipping_method'] ) )
+			foreach ( $this->posted['shipping_method'] as $i => $value )
+				$chosen_shipping_methods[ $i ] = woocommerce_clean( $value );
+
+		WC()->session->set( 'chosen_shipping_methods', $chosen_shipping_methods );
+		WC()->session->set( 'chosen_payment_method', $this->posted['payment_method'] );
 
 		// Note if we skip shipping
 		$skipped_shipping = false;
@@ -386,8 +411,13 @@ class WC_Checkout {
 		foreach ( $this->checkout_fields as $fieldset_key => $fieldset ) {
 
 			// Skip shipping if not needed
-			if ( $fieldset_key == 'shipping' && ( $this->posted['ship_to_different_address'] == false || ( ! $woocommerce->cart->needs_shipping() && get_option('woocommerce_require_shipping_address') == 'no' ) ) ) {
+			if ( $fieldset_key == 'shipping' && ( $this->posted['ship_to_different_address'] == false || ! $woocommerce->cart->needs_shipping() ) ) {
 				$skipped_shipping = true;
+				continue;
+			}
+
+			// Ship account if not needed
+			if ( $fieldset_key == 'account' && ( is_user_logged_in() || ( $this->must_create_account == false && empty( $this->posted['createaccount'] ) ) ) ) {
 				continue;
 			}
 
@@ -425,7 +455,7 @@ class WC_Checkout {
 						case "shipping_postcode" :
 
 							$validate_against = $key == 'billing_postcode' ? 'billing_country' : 'shipping_country';
-							$this->posted[ $key ] = strtoupper( str_replace( ' ', '', $this->posted[ $key ] ) );
+							$this->posted[ $key ]    = strtoupper( str_replace( ' ', '', $this->posted[ $key ] ) );
 
 							if ( ! $validation->is_postcode( $this->posted[ $key ], $_POST[ $validate_against ] ) )
 								wc_add_error( '<strong>' . $field['label'] . '</strong> ' . sprintf( __( '(%s) is not a valid postcode/ZIP.', 'woocommerce' ), $this->posted[ $key ] ) );
@@ -511,14 +541,18 @@ class WC_Checkout {
 
 		if ( $woocommerce->cart->needs_shipping() ) {
 
-			// Shipping Method
-			$available_methods = $woocommerce->shipping->get_available_shipping_methods();
+			if ( ! in_array( $woocommerce->customer->get_shipping_country(), array_keys( WC()->countries->get_shipping_countries() ) ) )
+				wc_add_error( sprintf( __( 'Unfortunately <strong>we do not ship to %s</strong>. Please enter an alternative shipping address.', 'woocommerce' ), $woocommerce->countries->shipping_to_prefix() . ' ' . $woocommerce->customer->get_shipping_country() ) );
 
-			if ( ! isset( $available_methods[ $this->posted['shipping_method'] ] ) ) {
-				$this->shipping_method = '';
-				wc_add_error( __( 'Invalid shipping method.', 'woocommerce' ) );
-			} else {
-				$this->shipping_method = $available_methods[ $this->posted['shipping_method'] ];
+			// Validate Shipping Methods
+			$packages               = WC()->shipping->get_packages();
+			$this->shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+
+			foreach ( $packages as $i => $package ) {
+				if ( ! isset( $package['rates'][ $this->shipping_methods[ $i ] ] ) ) {
+					wc_add_error( __( 'Invalid shipping method.', 'woocommerce' ) );
+					$this->shipping_methods[ $i ] = '';
+				}
 			}
 		}
 
@@ -544,7 +578,7 @@ class WC_Checkout {
 			try {
 
 				// Customer accounts
-				$this->customer_id = get_current_user_id();
+				$this->customer_id = apply_filters( 'woocommerce_checkout_customer_id', get_current_user_id() );
 
 				if ( ! is_user_logged_in() && ( $this->must_create_account || ! empty( $this->posted['createaccount'] ) ) ) {
 
